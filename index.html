@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Brick Breaker</title>
+    <link rel="stylesheet" href="css/default.css">
+    <script src="js/levels.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+<div id="game-board">
+    <div id="game-zone">
+        <div id="ball" class="game-object"></div>
+        <div id="racket" class="game-object"></div>
+        <div class="block game-object"></div>
+    </div>
+    <div id="game-menu">
+        <p>Score: <span id="score">0</span></p>
+        <p>Level: <span id="level">0</span></p>
+        <p>Lives: <span id="level">0</span></p>
+    </div>
+</div>
+<!-- THE GAME SPRITES THAT WILL NOT BE SHOWN -->
+<div id="sprites">
+
+</div>
+<script>
+    var gameEngine = new GameEngine(document.querySelector('#game-zone'),60);
+    gameEngine.gameInit();
+    gameEngine.start();
+    gameEngine.loadLevel();
+    gameEngine.gameMovement();
+</script>
+</body>
+</html>
