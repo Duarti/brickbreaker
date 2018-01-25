@@ -9,9 +9,16 @@ const DIR = {
     SO: [-1, 1],
     SL: [1, 1]
 };
+
 const KEYS = {
     ARROW_LEFT: 37,
     ARROW_RIGHT: 39
+};
+
+const STATE = {
+    START: 1,
+    RUNNING: 2,
+    OVER: 3
 }
 
 class GameEngine {
@@ -25,12 +32,39 @@ class GameEngine {
         this._frameCount = 0;
         this.level = levels[0];
         this.isMouseMove = false;
+        this.state = STATE.START;
     }
 
     update() {
+        let isThereBlocks = false;
+        let racket = this.objects[0];
+        let ball = this.objects[1];
         this.objects.forEach((object, i) => {
+            if(object instanceof Brick) {
+                isThereBlocks = true;
+            }
             object.update();
         })
+        for (let i = 0 ; i < this.objects.length ; i++) {
+            if(this.objects[i] instanceof Brick) {
+                let brick = this.objects[i];
+                if (ball.verifyCollision(brick)) {
+                    brick.life--;
+                    if(brick.life < 1){
+                        this.objectRemove(brick);
+                    }
+                    ball.dir[1] = 1;
+                }
+            }
+        }
+        // TODO fix this
+        if(racket.verifyCollision(ball)) {
+            if (ball.x < racket.x + (racket.width / 2)) {
+                ball.dir = DIR.NO;
+            } else {
+                ball.dir = DIR.NL;
+            }
+        }
     }
 
     start() {
@@ -58,7 +92,7 @@ class GameEngine {
     }
 
     gameInit() {
-        let racket = new Racket(document.querySelector('#racket'), 0, 0, 0, 0, 3, DIR.IDDLE);
+        let racket = new Racket(document.querySelector('#racket'), 0, 0, 0, 0, 7, DIR.IDDLE);
         racket.setInitialPosition();
         this.objects.push(racket);
 
@@ -91,6 +125,12 @@ class GameEngine {
                 x += b.element.offsetWidth + 11;
             }
         });
+        if(this.state === STATE.START) {
+            document.addEventListener('mousedown', () => {
+               this.objects[1].dir = DIR.N;
+               this.objects[1].isOnRacket = false;
+            });
+        }
     }
 
     gameMovement() {
