@@ -12,6 +12,45 @@
 </head>
 <body>
 <div id="game-board">
+    <div class="modal active" id="welcome">
+        <div class="modal-inside">
+            <h2>
+                Welcome breaker!
+            </h2>
+            <p>Select your level:</p>
+            <div id="levels">
+            </div>
+            <button class="btn btn-default" id="start">
+                START GAME
+            </button>
+            <button class="btn btn-info" id="info">
+                INSTRUCTIONS and CONTROLS
+            </button>
+        </div>
+    </div>
+    <div class="modal" id="info-modal">
+        <div class="modal-inside">
+            <h1>
+                Instructions:
+            </h1>
+            <ul>
+                <li>Break all bricks.</li>
+                <li>Click with the mouse to start.</li>
+                <li>Move the racket with the arrows or switch it to mouse cursor.</li>
+                <li>Pass all levels.</li>
+                <li>Don't let the ball fall out.</li>
+                <li>Press SPACE to pause.</li>
+                <li>Have fun!</li>
+            </ul>
+            <button class="btn btn-default close">
+                CLOSE
+            </button>
+        </div>
+    </div>
+    <div class="modal" id="help-modal">
+        <div class="modal-inside">
+        </div>
+    </div>
     <div id="game-zone">
         <div id="ball" class="game-object"></div>
         <div id="racket" class="game-object"></div>
@@ -20,7 +59,8 @@
     <div id="game-menu">
         <p>Score: <span id="score">0</span></p>
         <p>Level: <span id="level">0</span></p>
-        <p>Lives: <span id="level">0</span></p>
+        <p>Lives: <span id="lives">3</span></p>
+        <button id="control" class="btn btn-default">ARROWS</button>
     </div>
 </div>
 <!-- THE GAME SPRITES THAT WILL NOT BE SHOWN -->
@@ -28,11 +68,45 @@
 
 </div>
 <script>
-    var gameEngine = new GameEngine(document.querySelector('#game-zone'),60);
+    var gameEngine = new GameEngine(document.querySelector('#game-zone'), 60);
     gameEngine.gameInit();
-    gameEngine.start();
-    gameEngine.loadLevel();
     gameEngine.gameMovement();
+    levels.forEach((level, index) => {
+        let btn = document.createElement('button');
+        btn.classList.add('btn');
+        btn.classList.add('btn-level');
+        btn.innerHTML = 'LEVEL '+ (index+1);
+        btn.dataset.level = index;
+        if (index === 0){
+            btn.classList.add('selected');
+        }
+        document.querySelector('#levels').appendChild(btn);
+    });
+    document.querySelector('#info').addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')})
+    document.querySelectorAll('#info-modal .close')[0].addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')})
+    document.querySelectorAll('.btn-level').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn-level').forEach((btn) => {
+                btn.classList.remove('selected');
+            })
+            btn.classList.add('selected');
+
+            gameEngine.setLevel(Number.parseInt(btn.dataset.level))
+        });
+    })
+    document.querySelector('#start').addEventListener('click', () => {
+        document.querySelector('#welcome').classList.remove('active');
+       gameEngine.start();
+    });
+    document.querySelector('#control').addEventListener('click', (e) => {
+        if(e.target.innerHTML === 'ARROWS') {
+            this.gameEngine.isMouseMove = true;
+            e.target.innerHTML = 'MOUSE'
+        } else {
+            this.gameEngine.isMouseMove = false;
+            e.target.innerHTML = 'ARROWS'
+        }
+    })
 </script>
 </body>
 </html>

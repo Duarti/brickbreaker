@@ -30,9 +30,12 @@ class GameEngine {
         this.isSoundPlaying = true;
         this.loop;
         this._frameCount = 0;
-        this.level = levels[0];
+        this.levelNumber = 0;
+        this.level = levels[this.levelNumber];
         this.isMouseMove = false;
         this.state = STATE.START;
+        this.lives = 3;
+        this.score = 0;
     }
 
     update() {
@@ -40,34 +43,58 @@ class GameEngine {
         let racket = this.objects[0];
         let ball = this.objects[1];
         this.objects.forEach((object, i) => {
-            if(object instanceof Brick) {
+            if (object instanceof Brick) {
                 isThereBlocks = true;
             }
             object.update();
-        })
-        for (let i = 0 ; i < this.objects.length ; i++) {
-            if(this.objects[i] instanceof Brick) {
+        });
+        if(!isThereBlocks) {
+            this.gameWin();
+        }
+        for (let i = 0; i < this.objects.length; i++) {
+            if (this.objects[i] instanceof Brick) {
                 let brick = this.objects[i];
                 if (ball.verifyCollision(brick)) {
-                    brick.life--;
-                    if(brick.life < 1){
+                    brick.decressBrickLife();
+                    if(brick.type === 3){
+                        this.score += 30;
+                    } else if(brick.type === 2){
+                        this.score += 20;
+                    } else {
+                        this.score += 10;
+                    }
+                    if (brick.life < 1) {
                         this.objectRemove(brick);
                     }
-                    ball.dir[1] = 1;
+                    if(ball.x + (ball.width / 2) < brick.x + (brick.width / 2)){
+                        ball.dir[0] = -1;
+                    } else {
+                        ball.dir[0] = 1;
+                    }
+                    if(ball.y + ball.width < brick.y){
+                        ball.dir[1] = -1;
+                    } else {
+                        ball.dir[1] = 1;
+                    }
                 }
             }
         }
-        // TODO fix this
-        if(racket.verifyCollision(ball)) {
+        if (ball.verifyCollision(racket)) {
             if (ball.x < racket.x + (racket.width / 2)) {
                 ball.dir = DIR.NO;
             } else {
                 ball.dir = DIR.NL;
             }
+            ball.dir[1] = -1;
         }
+        document.querySelector('#score').innerHTML = this.score.toString();
+        document.querySelector('#level').innerHTML = (this.levelNumber + 1).toString();
+        document.querySelector('#lives').innerHTML = this.lives.toString();
     }
 
     start() {
+        this.restoreGameDefault();
+        this.loadLevel();
         this.loop = setInterval(() => {
 
             this._frameCount++;
@@ -87,17 +114,17 @@ class GameEngine {
 
     objectRemove(object) {
         let index = this.objects.indexOf(object);
-        this.objects.splice(index, 1);
         this.element.removeChild(object.element);
+        this.objects.splice(index, 1);
     }
 
     gameInit() {
-        let racket = new Racket(document.querySelector('#racket'), 0, 0, 0, 0, 7, DIR.IDDLE);
+        let racket = new Racket(document.querySelector('#racket'), 0, 0, 0, 0, 9, DIR.IDDLE);
         racket.setInitialPosition();
         this.objects.push(racket);
 
-        let ball = new Ball(document.querySelector('#ball'), 0, 0, 0, 0, 5, DIR.IDDLE);
-        ball.setInitialPosition(racket.x + (gameEngine.objects[0].width / 2) - 12, racket.y - 25);
+        let ball = new Ball(document.querySelector('#ball'), 0, 0, 0, 0, 6, DIR.IDDLE);
+        ball.setInitialPosition();
         this.objects.push(ball);
     }
 
@@ -106,15 +133,15 @@ class GameEngine {
         let y = 5;
         this.level.bricks.forEach((brick, index) => {
             if (brick === 0) {
-                if(x > 650) {
+                if (x > 650) {
                     x = 11;
-                    y = y+40;
+                    y = y + 40;
                 }
                 x += 101;
             } else {
-                if(x > 650) {
+                if (x > 650) {
                     x = 11;
-                    y = y+40;
+                    y = y + 40;
                 }
                 let div = document.createElement('div');
                 div.classList.add('game-object');
@@ -125,24 +152,27 @@ class GameEngine {
                 x += b.element.offsetWidth + 11;
             }
         });
-        if(this.state === STATE.START) {
-            document.addEventListener('mousedown', () => {
-               this.objects[1].dir = DIR.N;
-               this.objects[1].isOnRacket = false;
-            });
-        }
+        document.addEventListener('mousedown', () => {
+            if (this.state === STATE.START) {
+                this.objects[1].dir = DIR.N;
+                this.objects[1].isOnRacket = false;
+                this.state = STATE.RUNNING;
+            }
+        });
     }
 
     gameMovement() {
-        if(!this.isMouseMove) {
+        if (!this.isMouseMove) {
             document.addEventListener('keydown', (e) => {
-                if (e.keyCode === KEYS.ARROW_LEFT) {
-                    if (this.objects[0] instanceof Racket) {
-                        this.objects[0].moveLeft();
-                    }
-                } else if (e.keyCode === KEYS.ARROW_RIGHT) {
-                    if (this.objects[0] instanceof Racket) {
-                        this.objects[0].moveRight();
+                if(!this.isMouseMove) {
+                    if (e.keyCode === KEYS.ARROW_LEFT) {
+                        if (this.objects[0] instanceof Racket) {
+                            this.objects[0].moveLeft();
+                        }
+                    } else if (e.keyCode === KEYS.ARROW_RIGHT) {
+                        if (this.objects[0] instanceof Racket) {
+                            this.objects[0].moveRight();
+                        }
                     }
                 }
             });
@@ -152,15 +182,120 @@ class GameEngine {
                     this.objects[0].iddle();
                 }
             });
-        } else {
-            this.element.addEventListener('mousemove', (e) => {
-                console.log(e);
-            });
         }
+        this.element.addEventListener('mousemove', (e) => {
+            if(this.isMouseMove) {
+                let racket = this.objects[0];
+                if(e.layerX > racket.x && e.layerX < racket.x + racket.width){
+                    racket.dir = DIR.IDDLE;
+                } else if (e.layerX  > racket.x) {
+                    racket.dir = DIR.L;
+                } else if (e.layerX  < racket.x) {
+                    racket.dir = DIR.O;
+                }
+                racket.lastMousePosition = e.layerX;
+            }
+        });
     }
 
     changeMove() {
         this.isMouseMove = !this.isMouseMove;
+    }
+
+    setLevel(number) {
+        this.levelNumber = number;
+        this.level = levels[this.levelNumber];
+    }
+
+    verifyGameOver() {
+        this.lives--;
+        if (this.lives < 1) {
+            this.gameOver();
+        }
+        this.restoreBallAndRacket();
+        this.state = STATE.START;
+    }
+
+    gameOver() {
+        let m = document.querySelector('#help-modal');
+        let mi = document.querySelector('#help-modal .modal-inside');
+        mi.innerHTML = '';
+
+        let h1 = document.createElement('h1');
+        h1.innerText = 'GAME IS OVER!';
+
+        let p = document.createElement('p');
+        p.innerText = 'I\'m sorry looser.';
+
+        let btn = document.createElement('button');
+        btn.classList.add('btn');
+        btn.classList.add('btn-default');
+        btn.innerText = 'TRY AGAIN';
+        btn.addEventListener('click', () => {
+            this.state = STATE.START;
+            m.classList.toggle('active');
+            this.start();
+        });
+
+        mi.appendChild(h1);
+        mi.appendChild(p);
+        mi.appendChild(btn);
+
+        m.classList.toggle('active');
+        clearInterval(this.loop);
+    }
+
+    gameWin() {
+        let m = document.querySelector('#help-modal');
+        let mi = document.querySelector('#help-modal .modal-inside');
+        mi.innerHTML = '';
+
+        let h1 = document.createElement('h1');
+        h1.innerText = 'YOU WIN THIS LEVEL, YEEEAH!';
+
+        let p = document.createElement('p');
+        p.innerText = 'You rock!';
+
+        mi.appendChild(h1);
+        mi.appendChild(p);
+        if (this.levelNumber < levels.length) {
+            let btn = document.createElement('button');
+            btn.classList.add('btn');
+            btn.classList.add('btn-default');
+            btn.innerText = 'NEXT LEVEL';
+            btn.addEventListener('click', () => {
+                this.levelNumber++;
+                this.setLevel(this.levelNumber);
+                this.state = STATE.START;
+                m.classList.toggle('active');
+                this.start();
+            });
+            mi.appendChild(btn);
+        }
+
+        m.classList.toggle('active');
+        clearInterval(this.loop);
+    }
+
+    restoreBallAndRacket() {
+        this.objects[0].setInitialPosition();
+        this.objects[1].setInitialPosition();
+        this.objects[1].restoreInitialPosition();
+    }
+
+    restoreGameDefault() {
+        this.restoreBallAndRacket();
+        this.clearBricks();
+        this.objects = [];
+        this.lives = 3;
+        this.score = 0;
+        this.gameInit();
+    }
+
+    clearBricks() {
+        for (let i = 2; i < this.objects.length; i++) {
+            this.objectRemove(this.objects[i]);
+        }
     }
 }
 
@@ -195,7 +330,7 @@ class GameObject {
     move() {
         let nextX = this.x + (this.velocity * this.dir[0]);
         let nextY = this.y + (this.velocity * this.dir[1]);
-        if(nextX > 0 && nextX < (720 - this.width)) {
+        if (nextX > 0 && nextX < (720 - this.width)) {
             this.x = nextX;
             this.y = nextY;
         }
@@ -214,11 +349,16 @@ class Ball extends GameObject {
         this.isOnRacket = true;
     }
 
-    setInitialPosition(x, y) {
-        this.x = x;
-        this.y = y;
+    setInitialPosition() {
+        this.x = gameEngine.objects[0].x + (gameEngine.objects[0].width / 2) - 12;
+        this.y = gameEngine.objects[0].y - 25;
         this.width = this.element.offsetWidth;
         this.height = this.element.offsetHeight;
+    }
+
+    restoreInitialPosition() {
+        this.dir = DIR.IDDLE;
+        this.isOnRacket = true;
     }
 
     update() {
@@ -236,15 +376,15 @@ class Ball extends GameObject {
         let nextX = this.x + (this.velocity * this.dir[0]);
         let nextY = this.y + (this.velocity * this.dir[1]);
 
-        if(nextX < 0) {
+        if (nextX < 0) {
             this.dir[0] = 1;
         }
-        else if(nextX > (720 - this.width)) {
+        else if (nextX > (720 - this.width)) {
             this.dir[0] = -1;
         }
         if (nextY > gameEngine.objects[0].y + 50) {
-            gameEngine.isPaused = true;
-        } else if(nextY <= 0) {
+            gameEngine.verifyGameOver();
+        } else if (nextY <= 0) {
             this.dir[1] = 1;
         }
         nextX = this.x + (this.velocity * this.dir[0]);
@@ -264,13 +404,28 @@ class Racket extends GameObject {
     constructor(element, w, h, x, y, v, dir) {
         super(element, w, h, x, y, v, dir);
         this.isMoving = false;
+        this.initialPosition = {};
+        this.lastMousePosition = 0;
     }
 
     setInitialPosition() {
         this.x = this.element.offsetLeft;
         this.y = this.element.offsetTop;
-        this.width = this.element.offsetWidth
+        this.width = this.element.offsetWidth;
         this.height = this.element.offsetHeight;
+        this.initialPosition = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+        }
+    }
+
+    restoreInitialPosition() {
+        this.x = this.initialPosition.x;
+        this.y = this.initialPosition.y;
+        this.width = this.initialPosition.width;
+        this.height = this.initialPosition.height;
     }
 
     moveRight() {
@@ -292,6 +447,20 @@ class Racket extends GameObject {
         this.isMoving = false;
     }
 
+    move() {
+        let nextX = this.x + (this.velocity * this.dir[0]);
+        let nextY = this.y + (this.velocity * this.dir[1]);
+        if(gameEngine.isMouseMove) {
+            if(this.lastMousePosition > this.x && this.lastMousePosition < this.x + this.width){
+                this.dir = DIR.IDDLE;
+            }
+        }
+        if (nextX > 0 && nextX < (720 - this.width)) {
+            this.x = nextX;
+            this.y = nextY;
+        }
+    }
+
 }
 
 /**
@@ -306,18 +475,27 @@ class Brick extends GameObject {
         this.setColor();
     }
 
+    decressBrickLife() {
+        --this.life;
+        if (this.life < 2) {
+            this.element.style.opacity = "0.3";
+        } else if (this.life < 3) {
+            this.element.style.opacity = "0.5";
+        }
+    }
+
     setColor() {
         switch (this.type) {
             case 1:
-                this.element.style.backgroundColor = "#8f1e5b"
+                this.element.style.backgroundColor = "rgba(143, 30, 91, 1)";
                 this.life = 1;
                 break;
             case 2:
-                this.element.style.backgroundColor = "#009bdb"
+                this.element.style.backgroundColor = "rgba(0, 155, 219, 1)";
                 this.life = 2;
                 break;
             case 3:
-                this.element.style.backgroundColor = "#a9a9a9"
+                this.element.style.backgroundColor = "rgba(169, 169, 169, 1)";
                 this.life = 3;
                 break;
         }
