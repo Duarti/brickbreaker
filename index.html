@@ -65,7 +65,10 @@
 </div>
 <!-- THE GAME SPRITES THAT WILL NOT BE SHOWN -->
 <div id="sprites">
-
+    <audio src="sound/background.mp3" id="background" loop="true" autoplay="true"></audio>
+    <audio src="sound/gameover.mp3" id="gameover"></audio>
+    <audio src="sound/hit.mp3" id="hit"></audio>
+    <audio src="sound/win.mp3" id="win"></audio>
 </div>
 <script>
     var gameEngine = new GameEngine(document.querySelector('#game-zone'), 60);

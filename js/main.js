@@ -55,6 +55,9 @@ class GameEngine {
             if (this.objects[i] instanceof Brick) {
                 let brick = this.objects[i];
                 if (ball.verifyCollision(brick)) {
+                    if(this.isSoundPlaying) {
+                        document.querySelector('#hit').play()
+                    }
                     brick.decressBrickLife();
                     if(brick.type === 3){
                         this.score += 30;
@@ -217,6 +220,9 @@ class GameEngine {
     }
 
     gameOver() {
+        if(this.isSoundPlaying) {
+            document.querySelector('#gameover').play()
+        }
         let m = document.querySelector('#help-modal');
         let mi = document.querySelector('#help-modal .modal-inside');
         mi.innerHTML = '';
@@ -246,6 +252,9 @@ class GameEngine {
     }
 
     gameWin() {
+        if(this.isSoundPlaying) {
+            document.querySelector('#win').play()
+        }
         let m = document.querySelector('#help-modal');
         let mi = document.querySelector('#help-modal .modal-inside');
         mi.innerHTML = '';
@@ -258,7 +267,7 @@ class GameEngine {
 
         mi.appendChild(h1);
         mi.appendChild(p);
-        if (this.levelNumber < levels.length) {
+        if (this.levelNumber <= levels.length) {
             let btn = document.createElement('button');
             btn.classList.add('btn');
             btn.classList.add('btn-default');
