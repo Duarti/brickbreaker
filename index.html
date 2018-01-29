@@ -60,6 +60,8 @@
         <p>Score: <span id="score">0</span></p>
         <p>Level: <span id="level">0</span></p>
         <p>Lives: <span id="lives">3</span></p>
+        <img src="images/sound-on.png" alt="sound" id="sound" class="btn">
+        <img src="images/pause.png" alt="play and pause" id="play" class="btn">
         <button id="control" class="btn btn-default">ARROWS</button>
     </div>
 </div>
@@ -69,10 +71,13 @@
     <audio src="sound/gameover.mp3" id="gameover"></audio>
     <audio src="sound/hit.mp3" id="hit"></audio>
     <audio src="sound/win.mp3" id="win"></audio>
+    <audio src="sound/racket.mp3" id="racket-hit"></audio>
 </div>
 <script>
-    var gameEngine = new GameEngine(document.querySelector('#game-zone'), 60);
+    let helpmodal = document.querySelector('#help-modal');
+    let gameEngine = new GameEngine(document.querySelector('#game-zone'), 60);
     gameEngine.gameInit();
+    // LEVEL CHARGE
     gameEngine.gameMovement();
     levels.forEach((level, index) => {
         let btn = document.createElement('button');
@@ -85,8 +90,9 @@
         }
         document.querySelector('#levels').appendChild(btn);
     });
-    document.querySelector('#info').addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')})
-    document.querySelectorAll('#info-modal .close')[0].addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')})
+    // LEVEL SELECT
+    document.querySelector('#info').addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')});
+    document.querySelectorAll('#info-modal .close')[0].addEventListener('click', () => {document.querySelector('#info-modal').classList.toggle('active')});
     document.querySelectorAll('.btn-level').forEach((btn) => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.btn-level').forEach((btn) => {
@@ -96,11 +102,13 @@
 
             gameEngine.setLevel(Number.parseInt(btn.dataset.level))
         });
-    })
+    });
+    // GAME START
     document.querySelector('#start').addEventListener('click', () => {
         document.querySelector('#welcome').classList.remove('active');
        gameEngine.start();
     });
+    // CONTROL CHANGE
     document.querySelector('#control').addEventListener('click', (e) => {
         if(e.target.innerHTML === 'ARROWS') {
             this.gameEngine.isMouseMove = true;
@@ -110,6 +118,35 @@
             e.target.innerHTML = 'ARROWS'
         }
     })
+    //SOUND FUNCTION
+    let soundImg = document.querySelector('#sound');
+    soundImg.addEventListener('click', () => {
+        gameEngine.isSoundPlaying = !gameEngine.isSoundPlaying;
+        if(gameEngine.isSoundPlaying){
+            soundImg.src = "images/sound-on.png";
+            document.querySelector('#background').play();
+        } else {
+            soundImg.src = "images/sound-of.png";
+            document.querySelector('#background').pause();
+        }
+    });
+    // PLAY FUNCTION
+    let play = document.querySelector('#play');
+    play.addEventListener('click', () => {
+        gameEngine.isPaused = !gameEngine.isPaused;
+        if(gameEngine.isPaused){
+            document.querySelector('#background').pause();
+            play.src = "images/play.png";
+            helpmodal.querySelector('.modal-inside').innerHTML = '<h1>Paused</h1>';
+            helpmodal.classList.add('active')
+        } else {
+            if(gameEngine.isSoundPlaying) {
+                document.querySelector('#background').play();
+                play.src = "images/pause.png";
+                helpmodal.classList.remove('active')
+            }
+        }
+    });
 </script>
 </body>
 </html>

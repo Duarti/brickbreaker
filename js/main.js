@@ -48,20 +48,20 @@ class GameEngine {
             }
             object.update();
         });
-        if(!isThereBlocks) {
+        if (!isThereBlocks) {
             this.gameWin();
         }
         for (let i = 0; i < this.objects.length; i++) {
             if (this.objects[i] instanceof Brick) {
                 let brick = this.objects[i];
                 if (ball.verifyCollision(brick)) {
-                    if(this.isSoundPlaying) {
+                    if (this.isSoundPlaying) {
                         document.querySelector('#hit').play()
                     }
                     brick.decressBrickLife();
-                    if(brick.type === 3){
+                    if (brick.type === 3) {
                         this.score += 30;
-                    } else if(brick.type === 2){
+                    } else if (brick.type === 2) {
                         this.score += 20;
                     } else {
                         this.score += 10;
@@ -69,12 +69,12 @@ class GameEngine {
                     if (brick.life < 1) {
                         this.objectRemove(brick);
                     }
-                    if(ball.x + (ball.width / 2) < brick.x + (brick.width / 2)){
+                    if (ball.x + (ball.width / 2) < brick.x + (brick.width / 2)) {
                         ball.dir[0] = -1;
                     } else {
                         ball.dir[0] = 1;
                     }
-                    if(ball.y + ball.width < brick.y){
+                    if (ball.y + ball.width < brick.y) {
                         ball.dir[1] = -1;
                     } else {
                         ball.dir[1] = 1;
@@ -83,12 +83,10 @@ class GameEngine {
             }
         }
         if (ball.verifyCollision(racket)) {
-            if (ball.x < racket.x + (racket.width / 2)) {
-                ball.dir = DIR.NO;
-            } else {
-                ball.dir = DIR.NL;
+
+            if(this.isSoundPlaying) {
+                document.querySelector('#racket-hit').play();
             }
-            ball.dir[1] = -1;
         }
         document.querySelector('#score').innerHTML = this.score.toString();
         document.querySelector('#level').innerHTML = (this.levelNumber + 1).toString();
@@ -155,7 +153,7 @@ class GameEngine {
                 x += b.element.offsetWidth + 11;
             }
         });
-        document.addEventListener('mousedown', () => {
+        this.element.addEventListener('mousedown', () => {
             if (this.state === STATE.START) {
                 this.objects[1].dir = DIR.N;
                 this.objects[1].isOnRacket = false;
@@ -167,7 +165,7 @@ class GameEngine {
     gameMovement() {
         if (!this.isMouseMove) {
             document.addEventListener('keydown', (e) => {
-                if(!this.isMouseMove) {
+                if (!this.isMouseMove) {
                     if (e.keyCode === KEYS.ARROW_LEFT) {
                         if (this.objects[0] instanceof Racket) {
                             this.objects[0].moveLeft();
@@ -187,22 +185,18 @@ class GameEngine {
             });
         }
         this.element.addEventListener('mousemove', (e) => {
-            if(this.isMouseMove) {
+            if (this.isMouseMove) {
                 let racket = this.objects[0];
-                if(e.layerX > racket.x && e.layerX < racket.x + racket.width){
+                if (e.layerX > racket.x && e.layerX < racket.x + racket.width) {
                     racket.dir = DIR.IDDLE;
-                } else if (e.layerX  > racket.x) {
+                } else if (e.layerX > racket.x) {
                     racket.dir = DIR.L;
-                } else if (e.layerX  < racket.x) {
+                } else if (e.layerX < racket.x) {
                     racket.dir = DIR.O;
                 }
                 racket.lastMousePosition = e.layerX;
             }
         });
-    }
-
-    changeMove() {
-        this.isMouseMove = !this.isMouseMove;
     }
 
     setLevel(number) {
@@ -220,7 +214,7 @@ class GameEngine {
     }
 
     gameOver() {
-        if(this.isSoundPlaying) {
+        if (this.isSoundPlaying) {
             document.querySelector('#gameover').play()
         }
         let m = document.querySelector('#help-modal');
@@ -252,7 +246,7 @@ class GameEngine {
     }
 
     gameWin() {
-        if(this.isSoundPlaying) {
+        if (this.isSoundPlaying) {
             document.querySelector('#win').play()
         }
         let m = document.querySelector('#help-modal');
@@ -459,8 +453,8 @@ class Racket extends GameObject {
     move() {
         let nextX = this.x + (this.velocity * this.dir[0]);
         let nextY = this.y + (this.velocity * this.dir[1]);
-        if(gameEngine.isMouseMove) {
-            if(this.lastMousePosition > this.x && this.lastMousePosition < this.x + this.width){
+        if (gameEngine.isMouseMove) {
+            if (this.lastMousePosition > this.x && this.lastMousePosition < this.x + this.width) {
                 this.dir = DIR.IDDLE;
             }
         }
