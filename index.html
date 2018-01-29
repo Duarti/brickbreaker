@@ -111,10 +111,10 @@
     // CONTROL CHANGE
     document.querySelector('#control').addEventListener('click', (e) => {
         if(e.target.innerHTML === 'ARROWS') {
-            this.gameEngine.isMouseMove = true;
+            gameEngine.isMouseMove = true;
             e.target.innerHTML = 'MOUSE'
         } else {
-            this.gameEngine.isMouseMove = false;
+            gameEngine.isMouseMove = false;
             e.target.innerHTML = 'ARROWS'
         }
     })
@@ -134,16 +134,18 @@
     let play = document.querySelector('#play');
     play.addEventListener('click', () => {
         gameEngine.isPaused = !gameEngine.isPaused;
-        if(gameEngine.isPaused){
-            document.querySelector('#background').pause();
-            play.src = "images/play.png";
-            helpmodal.querySelector('.modal-inside').innerHTML = '<h1>Paused</h1>';
-            helpmodal.classList.add('active')
-        } else {
-            if(gameEngine.isSoundPlaying) {
-                document.querySelector('#background').play();
-                play.src = "images/pause.png";
-                helpmodal.classList.remove('active')
+        if(gameEngine.state === STATE.START || gameEngine.state === STATE.RUNNING) {
+            if(gameEngine.isPaused){
+                document.querySelector('#background').pause();
+                play.src = "images/play.png";
+                helpmodal.querySelector('.modal-inside').innerHTML = '<h1>Paused</h1>';
+                helpmodal.classList.add('active')
+            } else {
+                if(gameEngine.isSoundPlaying) {
+                    document.querySelector('#background').play();
+                    play.src = "images/pause.png";
+                    helpmodal.classList.remove('active')
+                }
             }
         }
     });

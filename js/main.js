@@ -19,7 +19,7 @@ const STATE = {
     START: 1,
     RUNNING: 2,
     OVER: 3
-}
+};
 
 class GameEngine {
     constructor(element, fps) {
@@ -28,7 +28,7 @@ class GameEngine {
         this.objects = [];
         this.isPaused = false;
         this.isSoundPlaying = true;
-        this.loop;
+        this.loop = null;
         this._frameCount = 0;
         this.levelNumber = 0;
         this.level = levels[this.levelNumber];
@@ -74,7 +74,7 @@ class GameEngine {
                     } else {
                         ball.dir[0] = 1;
                     }
-                    if (ball.y + ball.width < brick.y) {
+                    if (ball.y +ball.height > brick.y && brick.y + brick.height > ball.y +ball.height) {
                         ball.dir[1] = -1;
                     } else {
                         ball.dir[1] = 1;
@@ -83,7 +83,8 @@ class GameEngine {
             }
         }
         if (ball.verifyCollision(racket)) {
-
+            ball.dir[1] = ball.dir[1] * racket.dir[1];
+            ball.dir[1] = -1;
             if(this.isSoundPlaying) {
                 document.querySelector('#racket-hit').play();
             }
@@ -243,6 +244,7 @@ class GameEngine {
 
         m.classList.toggle('active');
         clearInterval(this.loop);
+        this.state = STATE.OVER;
     }
 
     gameWin() {
@@ -287,18 +289,14 @@ class GameEngine {
     }
 
     restoreGameDefault() {
+        for (let i = 2; i < this.objects.length; i++) {
+            this.objectRemove(this.objects[i]);
+        }
         this.restoreBallAndRacket();
-        this.clearBricks();
         this.objects = [];
         this.lives = 3;
         this.score = 0;
         this.gameInit();
-    }
-
-    clearBricks() {
-        for (let i = 2; i < this.objects.length; i++) {
-            this.objectRemove(this.objects[i]);
-        }
     }
 }
 
